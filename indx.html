@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>هاودەنگ مصطفى | CCTV Engineering Optics & VMS Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Vazirmatn & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'Segoe UI', 'Tahoma', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        vms: {
+                            base: '#0a0d14',
+                            panel: '#121622',
+                            card: '#181e2e',
+                            header: '#0d111b',
+                            border: '#232d42',
+                            input: '#0c101a',
+                            accent: '#e60012',
+                            blue: '#0284c7',
+                            cyan: '#06b6d4',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            rose: '#ef4444'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', 'Segoe UI', sans-serif;
+            background-color: #0a0d14;
+            color: #d1d5db;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            background: #0c101a;
+            border: 1px solid #232d42;
+            border-radius: 6px;
+            height: 7px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 4px;
+            background: #06b6d4;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+            transition: all 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            background: #e60012;
+            box-shadow: 0 0 10px rgba(230, 0, 18, 0.8);
+            transform: scale(1.15);
+        }
+
+        .tab-active {
+            background: #181e2e !important;
+            color: #ffffff !important;
+            border-bottom: 2px solid #e60012 !important;
+        }
+
+        .btn-lens-active, .btn-mode-active {
+            background: #e60012 !important;
+            color: #ffffff !important;
+            border-color: #f87171 !important;
+            box-shadow: 0 0 8px rgba(230, 0, 18, 0.5);
+        }
+
+        .vms-scanline {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+
+        @media print {
+            body { background: white !important; color: black !important; }
+            header, footer, aside, .no-print { display: none !important; }
+            #reportModal { display: block !important; position: static !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-vms-base">
+
+    <!-- Header -->
+    <header class="bg-vms-header border-b border-vms-border px-4 py-2.5 sticky top-0 z-50 shadow-md">
+        <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
+            
+            <div class="flex items-center gap-3">
+                <div class="relative group">
+                    <div id="headerLogoContainer" class="w-12 h-12 rounded-lg bg-vms-card border border-vms-border flex items-center justify-center overflow-hidden p-0.5 shadow-inner cursor-pointer" title="Upload Logo">
+                        <img id="imgBrandLogo" src="" alt="Brand Logo" class="w-full h-full object-cover rounded hidden">
+                        <svg id="svgBrandLogo" viewBox="0 0 120 150" class="w-full h-full">
+                            <path d="M 60,10 C 34,10 14,35 14,75 C 14,105 32,135 60,145 Z" fill="#e29578" />
+                            <rect x="22" y="58" width="34" height="22" rx="4" fill="none" stroke="#111317" stroke-width="4"/>
+                            <path d="M 60,10 C 86,10 106,35 106,75 C 106,105 88,135 60,145 Z" fill="#181b22" />
+                            <line x1="60" y1="8" x2="60" y2="146" stroke="#e60012" stroke-width="3" />
+                            <rect x="68" y="24" width="34" height="14" rx="2" fill="#ffffff" stroke="#e60012" stroke-width="1.5" />
+                            <circle cx="83" cy="76" r="6" fill="#06b6d4" />
+                            <rect x="68" y="96" width="32" height="18" rx="2" fill="#232d42" stroke="#10b981" stroke-width="1.2" />
+                        </svg>
+                    </div>
+                    <input type="file" id="fileLogoUpload" accept="image/*" class="hidden">
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-sm md:text-base font-black text-white tracking-wide">
+                            هاودەنگ مصطفى | Hawdang Mustafa
+                        </h1>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-vms-accent/20 text-vms-accent border border-vms-accent/40 font-bold">
+                            CCTV OPTICS SUITE
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-gray-400" data-i18n="subtitle">
+                        شیکاری ئەندازیاری بینینی دەموچاوی ڕاستەقینە، تابلۆی ئۆتۆمبێل، و بەراوردکاری IP بەرامبەر Analog
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center flex-wrap gap-2 text-xs font-bold no-print">
+                <!-- Language Selector -->
+                <div class="bg-vms-panel px-2 py-1 rounded-lg border border-vms-cyan/40 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-language text-vms-cyan text-sm"></i>
+                    <select id="selLang" class="bg-transparent text-white text-xs font-bold font-mono focus:outline-none cursor-pointer">
+                        <option value="ckb" class="bg-vms-card text-white">کوردی (سۆرانی)</option>
+                        <option value="ar" class="bg-vms-card text-white">العربية</option>
+                        <option value="en" class="bg-vms-card text-white">English</option>
+                    </select>
+                </div>
+
+                <!-- Lighting Mode -->
+                <div class="bg-vms-panel p-1 rounded-lg border border-vms-border flex items-center gap-1 shadow-sm">
+                    <button type="button" id="btnModeDay" class="px-3 py-1.5 rounded transition text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-sun text-vms-amber"></i>
+                        <span data-i18n="modeDay">ڕۆژ (Day)</span>
+                    </button>
+                    <button type="button" id="btnModeIR" class="px-3 py-1.5 rounded transition text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-moon text-gray-300"></i>
+                        <span data-i18n="modeIR">شەوی IR</span>
+                    </button>
+                    <button type="button" id="btnModeColorVu" class="btn-mode-active px-3.5 py-1.5 rounded transition text-white flex items-center gap-1.5 font-black shadow">
+                        <i class="fa-solid fa-lightbulb text-yellow-300"></i>
+                        <span data-i18n="modeColorVu">کەلەر ڤیو (ColorVu 24/7)</span>
+                    </button>
+                </div>
+
+                <button type="button" id="btnOpenReport" class="px-3.5 py-1.5 rounded-lg bg-vms-panel hover:bg-vms-card border border-vms-cyan/50 text-vms-cyan text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span data-i18n="reportBtn">ڕاپۆرتی ئەندازیاری</span>
+                </button>
+                <button type="button" id="btnReset" class="p-2 rounded-lg bg-vms-panel hover:bg-vms-card border border-vms-border text-gray-400 hover:text-white transition" title="Reset">
+                    <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                </button>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-[1920px] mx-auto w-full p-3 md:p-4 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+        <!-- Controls Column -->
+        <aside class="lg:col-span-4 space-y-3 no-print">
+
+            <div class="bg-vms-panel rounded-xl border border-vms-border p-4 space-y-4 shadow-xl">
+                <div class="flex items-center justify-between border-b border-vms-border pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-vms-accent shadow-[0_0_8px_#e60012]"></span>
+                        <h2 class="text-xs font-black text-white tracking-wider uppercase" data-i18n="controlTitle">
+                            کۆنتڕۆڵی لێنز و دامەزراندن
+                        </h2>
+                    </div>
+                    <span id="badgeLensQuick" class="text-[11px] font-mono px-2 py-0.5 rounded bg-vms-card border border-vms-border text-vms-cyan font-bold">
+                        2.8mm @ 4MP
+                    </span>
+                </div>
+
+                <!-- Target Selection (Human Photo vs License Plate Photo) -->
+                <div class="bg-vms-card p-3 rounded-lg border border-vms-cyan/30 space-y-2">
+                    <label class="block text-xs font-black text-vms-cyan" data-i18n="targetType">وێنەی پشکنینی ڕاستەقینە:</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                        <button type="button" id="btnSelectHuman" class="py-2 px-3 rounded-lg bg-vms-accent text-white flex items-center justify-center gap-2 shadow border border-red-500 transition">
+                            <i class="fa-solid fa-user"></i>
+                            <span data-i18n="targetHuman">دەموچاوی مرۆڤی ڕاستی</span>
+                        </button>
+                        <button type="button" id="btnSelectCar" class="py-2 px-3 rounded-lg bg-vms-input hover:bg-vms-border text-gray-300 flex items-center justify-center gap-2 border border-vms-border transition">
+                            <i class="fa-solid fa-car"></i>
+                            <span data-i18n="targetCar">تابلۆی ئۆتۆمبێل (Plate)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Focal Length -->
+                <div>
+                    <div class="flex justify-between items-center text-xs font-bold mb-1.5">
+                        <span class="text-gray-300" data-i18n="focalLength">درێژی فوکەسی لێنز (Focal Length):</span>
+                        <span id="valFocalText" class="font-mono text-vms-cyan bg-vms-input px-2 py-0.5 rounded border border-vms-border">2.8 mm</span>
+                    </div>
+                    <div class="grid grid-cols-6 gap-1 mb-2">
+                        <button type="button" class="btn-lens btn-lens-active py-1.5 rounded text-xs font-mono font-bold bg-vms-card border border-vms-border text-gray-300 hover:text-white transition" data-focal="2.8">2.8</button>
+                        <button type="button" class="btn-lens py-1.5 rounded text-xs font-mono font-bold bg-vms-card border border-vms-border text-gray-300 hover:text-white transition" data-focal="4.0">4.0</button>
+                        <button type="button" class="btn-lens py-1.5 rounded text-xs font-mono font-bold bg-vms-card border border-vms-border text-gray-300 hover:text-white transition" data-focal="6.0">6.0</button>
+                        <button type="button" class="btn-lens py-1.5 rounded text-xs font-mono font-bold bg-vms-card border border-vms-border text-gray-300 hover:text-white transition" data-focal="8.0">8.0</button>
+                        <button type="button" class="btn-lens py-1.5 rounded text-xs font-mono font-bold bg-vms-card border border-vms-border text-gray-300 hover:text-white transition" data-focal="12.0">12.0</button>
+                        <button type="button" class="btn-lens py-1.5 rounded text-xs font-mono font-bold bg-vms-card border border-vms-border text-gray-300 hover:text-white transition" data-focal="16.0">16.0</button>
+                    </div>
+                    <input type="range" id="sliderFocal" min="2.0" max="25.0" step="0.1" value="2.8" class="w-full">
+                </div>
+
+                <!-- Resolution -->
+                <div>
+                    <label for="selResolution" class="block text-xs font-bold text-gray-300 mb-1.5" data-i18n="sensorRes">ڕوونی هەستەوەر (Sensor Resolution):</label>
+                    <select id="selResolution" class="w-full bg-vms-input border border-vms-border rounded-lg p-2 text-xs text-white font-mono focus:outline-none focus:border-vms-cyan">
+                        <option value="2">2 MP (Full HD 1080p - 1920×1080)</option>
+                        <option value="4" selected>4 MP (2K Quad HD - 2560×1440)</option>
+                        <option value="5">5 MP (Super HD - 2560×1920)</option>
+                        <option value="8">8 MP (4K Ultra HD - 3840×2160)</option>
+                        <option value="12">12 MP (Industrial Max - 4000×3000)</option>
+                    </select>
+                </div>
+
+                <!-- Height & Distance -->
+                <div class="space-y-3 pt-2 border-t border-vms-border">
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-bold mb-1">
+                            <span class="text-gray-300" data-i18n="camHeight">بەرزی کامێرا لەسەر زەوی (Height):</span>
+                            <span id="valHeightText" class="font-mono text-vms-emerald bg-vms-input px-2 py-0.5 rounded border border-vms-border">3.0 م</span>
+                        </div>
+                        <input type="range" id="sliderHeight" min="1.5" max="8.0" step="0.5" value="3.0" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-bold mb-1">
+                            <span class="text-gray-300" data-i18n="targetDist">دووری ئامانج لەسەر زەوی (Distance):</span>
+                            <span id="valDistText" class="font-mono text-vms-amber bg-vms-input px-2 py-0.5 rounded border border-vms-border">10.0 م</span>
+                        </div>
+                        <input type="range" id="sliderDist" min="1.0" max="50.0" step="0.5" value="10.0" class="w-full">
+                    </div>
+                </div>
+
+                <!-- Tilt Angle -->
+                <div class="bg-vms-card p-3 rounded-lg border border-vms-border space-y-1.5">
+                    <div class="flex justify-between items-center text-xs font-bold">
+                        <span class="text-vms-cyan flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-up-down"></i> <span data-i18n="tiltAngle">گۆشەی مەیل (Tilt Angle):</span>
+                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <span id="valTiltText" class="font-mono text-white bg-vms-input px-2 py-0.5 rounded border border-vms-border">16.7°</span>
+                            <button type="button" id="btnAutoTilt" class="px-2 py-0.5 rounded text-[10px] bg-vms-blue text-white font-bold hover:bg-sky-500 transition">
+                                Auto
+                            </button>
+                        </div>
+                    </div>
+                    <input type="range" id="sliderTilt" min="0" max="85" step="0.5" value="16.7" class="w-full">
+                </div>
+
+                <!-- Coaxial Degradation -->
+                <div class="bg-vms-card p-3 rounded-lg border border-vms-border space-y-1.5">
+                    <div class="flex justify-between items-center text-xs font-bold">
+                        <span class="text-vms-amber flex items-center gap-1.5">
+                            <i class="fa-solid fa-network-wired"></i> <span data-i18n="coaxCable">درێژی وایەری کۆئەکسیال (RG59):</span>
+                        </span>
+                        <span id="valCoaxLenText" class="font-mono text-vms-amber font-bold bg-vms-input px-2 py-0.5 rounded border border-vms-border">50 م</span>
+                    </div>
+                    <input type="range" id="sliderCoaxLen" min="10" max="300" step="10" value="50" class="w-full">
+                    <span class="text-[10px] text-gray-400 block" data-i18n="coaxNote">کێبڵی درێژتر لە ئەنەلۆگ دەبێتە هۆی نۆیز و شەپۆلی 50Hz لەسەر دەموچاو و تابلۆ.</span>
+                </div>
+
+                <!-- WDR / BLC / HLC Options -->
+                <div class="bg-vms-card p-3 rounded-lg border border-vms-cyan/30 space-y-2">
+                    <div class="flex justify-between items-center text-xs font-bold">
+                        <span class="text-vms-cyan" data-i18n="wdrTech">تەکنەلۆژیای WDR / BLC / HLC:</span>
+                        <span id="badgeWdrActive" class="text-[10px] font-mono px-2 py-0.5 rounded bg-vms-emerald/20 text-vms-emerald border border-vms-emerald/40 font-bold">
+                            WDR 120dB
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1 text-[11px] font-mono">
+                        <button type="button" class="btn-wdr-mode py-1 rounded bg-vms-input border border-vms-border text-gray-400 hover:text-white transition text-center" data-mode="off">Off</button>
+                        <button type="button" class="btn-wdr-mode btn-mode-active py-1 rounded bg-vms-card border border-vms-border text-white transition text-center font-bold" data-mode="wdr">True WDR</button>
+                        <button type="button" class="btn-wdr-mode py-1 rounded bg-vms-input border border-vms-border text-gray-400 hover:text-white transition text-center" data-mode="blc">BLC</button>
+                        <button type="button" class="btn-wdr-mode py-1 rounded bg-vms-input border border-vms-border text-gray-400 hover:text-white transition text-center" data-mode="hlc">HLC</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Dead Zone Card -->
+            <div class="bg-vms-panel rounded-xl border border-vms-rose/40 p-3.5 space-y-2 shadow-lg">
+                <div class="flex justify-between items-center text-xs font-black">
+                    <span class="text-vms-rose flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="blindSpotTitle">ناوچەی کوێری ژێر کامێرا (Dead Zone)</span>
+                    </span>
+                    <span id="valBlindRatioBadge" class="font-mono text-vms-rose bg-vms-rose/20 px-2 py-0.5 rounded border border-vms-rose/40">18.2%</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-vms-card p-2 rounded border border-vms-border">
+                        <span class="text-[10px] text-gray-400 block" data-i18n="blindLength">درێژیی ناوچەی کوێر:</span>
+                        <span id="valBlindMetersText" class="font-mono font-black text-vms-rose text-sm">1.8 م</span>
+                    </div>
+                    <div class="bg-vms-card p-2 rounded border border-vms-border">
+                        <span class="text-[10px] text-gray-400 block" data-i18n="blindRatio">ڕێژەی کەلێنی بینین:</span>
+                        <span id="valBlindPercentText" class="font-mono font-black text-vms-amber text-sm">18.2%</span>
+                    </div>
+                </div>
+                <div class="w-full bg-vms-base h-2 rounded overflow-hidden border border-vms-border">
+                    <div id="blindProgressBar" class="h-full bg-gradient-to-r from-vms-amber to-vms-rose rounded" style="width: 18%;"></div>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Right Side: Display & Simulation Area -->
+        <section class="lg:col-span-8 space-y-3">
+            
+            <!-- Real-Time Metrics Strip -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                <div class="bg-vms-panel p-2.5 rounded-lg border border-vms-border shadow-sm">
+                    <span class="text-[10px] text-gray-400 block" data-i18n="statHFOVTitle">گۆشەی ئاسۆیی (HFOV)</span>
+                    <span id="statHFOV" class="text-base font-black text-vms-cyan font-mono">85.5°</span>
+                    <span id="statVFOV" class="text-[9px] text-gray-500 font-mono block">V-FOV: 69.4°</span>
+                </div>
+                <div class="bg-vms-panel p-2.5 rounded-lg border border-vms-border shadow-sm">
+                    <span class="text-[10px] text-gray-400 block" data-i18n="statWidthTitle">پانتایی دیمەن لە ئامانج</span>
+                    <span id="statSceneWidth" class="text-base font-black text-vms-emerald font-mono">18.5 م</span>
+                    <span id="statSlant" class="text-[9px] text-gray-500 font-mono block">دووری لێژ: 10.4 م</span>
+                </div>
+                <div class="bg-vms-panel p-2.5 rounded-lg border border-vms-border shadow-sm">
+                    <span class="text-[10px] text-gray-400 block" data-i18n="statPPMTitle">چڕیی پێکسڵ (PPM)</span>
+                    <span id="statPPM" class="text-base font-black text-vms-amber font-mono">138 px/m</span>
+                    <span class="text-[9px] text-gray-500 font-mono block">EN 62676-4</span>
+                </div>
+                <div class="bg-vms-panel p-2.5 rounded-lg border border-vms-rose/40 shadow-sm">
+                    <span class="text-[10px] text-vms-rose block" data-i18n="statBlindTitle">ناوچەی کوێری زەوی</span>
+                    <span id="statBlindM" class="text-base font-black text-vms-rose font-mono">1.8 م</span>
+                    <span id="statTiltInfo" class="text-[9px] text-gray-500 font-mono block">مەیل: -16.7°</span>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex items-center gap-1 border-b border-vms-border text-xs font-bold no-print">
+                <button type="button" id="tabBtn1" class="tab-btn tab-active px-4 py-2 rounded-t transition flex items-center gap-2">
+                    <i class="fa-solid fa-camera text-xs"></i>
+                    <span data-i18n="tabLive">بینینی ڕاستەوخۆ: دەموچاو و تابلۆ (IP vs Analog)</span>
+                </button>
+                <button type="button" id="tabBtn2" class="tab-btn px-4 py-2 rounded-t text-gray-400 hover:text-white transition flex items-center gap-2">
+                    <i class="fa-solid fa-drafting-compass text-xs"></i>
+                    <span data-i18n="tabRadar">نەخشەی ڕاداری DORI و هێڵکاری ستوونی</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: Main Real Photography Inspection (IP vs Analog) -->
+            <div id="tabPanel1" class="space-y-3">
+                <div class="bg-vms-panel rounded-xl border border-vms-border p-3 space-y-2 shadow-xl">
+                    
+                    <div class="flex flex-wrap items-center justify-between text-xs font-mono text-gray-400 gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-vms-accent animate-pulse shadow-[0_0_8px_#e60012]"></span>
+                            <span class="text-white font-bold" id="liveStreamTitle">
+                                CAM-01 [پشکنینی فۆتۆگرافی: وێنەی کەسی ڕاستی و تابلۆ]
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="osdLightingBadge" class="text-vms-amber font-bold">COLORVU 24/7 F1.0</span>
+                            <span>•</span>
+                            <span id="osdResBadge">2560×1440</span>
+                            <span>•</span>
+                            <span class="text-vms-emerald">25 FPS</span>
+                        </div>
+                    </div>
+
+                    <!-- Dual Side-by-Side Canvas for Real Target (IP vs Analog) -->
+                    <div class="relative w-full aspect-[16/9] bg-black rounded-lg overflow-hidden border border-vms-border select-none shadow-2xl">
+                        <div class="w-full h-full grid grid-cols-2 gap-0.5 bg-vms-border">
+                            <!-- IP Camera View (Digital Real Photo) -->
+                            <div class="relative w-full h-full bg-[#080d1a] overflow-hidden">
+                                <canvas id="cvsLiveIP" class="w-full h-full block"></canvas>
+                                <div class="vms-scanline absolute inset-0"></div>
+                                <div class="absolute top-2 right-2 px-2 py-0.5 rounded bg-vms-cyan/30 border border-vms-cyan text-vms-cyan text-[10px] font-mono font-bold backdrop-blur-sm">
+                                    <i class="fa-solid fa-network-wired"></i> IP DIGITAL (LOSSLESS)
+                                </div>
+                                <div class="absolute bottom-2 left-2 text-[9px] font-mono text-gray-300 bg-black/80 px-2 py-0.5 rounded">
+                                    <span id="lblPpmIP">138</span> PPM • H.265+
+                                </div>
+                            </div>
+
+                            <!-- Analog Camera View (Coaxial Real Photo with Noise & Distortion) -->
+                            <div class="relative w-full h-full bg-[#121620] overflow-hidden">
+                                <canvas id="cvsLiveAnalog" class="w-full h-full block"></canvas>
+                                <div class="vms-scanline absolute inset-0"></div>
+                                <div class="absolute top-2 right-2 px-2 py-0.5 rounded bg-vms-amber/30 border border-vms-amber text-vms-amber text-[10px] font-mono font-bold backdrop-blur-sm">
+                                    <i class="fa-solid fa-video"></i> ANALOG COAX (RG59)
+                                </div>
+                                <div class="absolute bottom-2 left-2 text-[9px] font-mono text-vms-amber bg-black/80 px-2 py-0.5 rounded">
+                                    BNC • <span id="lblCableLossText">50m CABLE NOISE</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- OSD Watermark -->
+                        <div class="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-vms-header/90 backdrop-blur px-3 py-1 rounded-full border border-vms-border shadow z-30 pointer-events-none">
+                            <span class="text-[11px] font-black text-white">هاودەنگ مصطفى - CCTV OPTIC LAB</span>
+                        </div>
+
+                        <!-- Time OSD -->
+                        <div class="absolute bottom-2 right-2 text-[10px] font-mono text-vms-cyan bg-vms-header/90 backdrop-blur px-2 py-1 rounded border border-vms-border z-30">
+                            <span id="osdDate">2026-10-31</span> <span id="osdTime">01:00:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Blind Spot Alert Banner -->
+                    <div id="blindAlertBanner" class="hidden bg-vms-rose/20 border border-vms-rose p-2.5 rounded-lg flex items-center justify-between text-vms-rose text-xs font-bold animate-pulse">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                            <span data-i18n="blindAlertText">ئاگاداری: ئامانجەکە کەوتە ناوچەی کوێر (Dead Zone) لە ژێر کامێراکەدا و بەهیچ شێوەیەک نابینرێت!</span>
+                        </div>
+                        <span class="font-mono text-[10px] bg-vms-rose text-white px-2 py-0.5 rounded">BLIND SPOT</span>
+                    </div>
+
+                    <!-- Real-World Clarity Score Bar -->
+                    <div class="bg-vms-card rounded-lg border border-vms-border p-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="border-l border-vms-border pl-3 space-y-1">
+                            <span class="font-bold text-vms-cyan flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved"></i> <span>کوالیتی ڕاستەقینەی IP:</span>
+                            </span>
+                            <p id="lblIpSummary" class="text-[11px] text-gray-300">ڕوونی تەواو تیژ، بەرزترین ئەگەری ناسینەوەی تابلۆ و ڕووخسار (98% Recognition).</p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="font-bold text-vms-amber flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation"></i> <span>کوالیتی ڕاستەقینەی Analog:</span>
+                            </span>
+                            <p id="lblAnalogSummary" class="text-[11px] text-gray-300">بەهۆی درێژیی کێبڵەکە نۆیز و شەپۆلی 50Hz لەسەر وێنەکە دروست دەبێت.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- DORI Standard Strip -->
+                <div class="bg-vms-panel p-3 rounded-xl border border-vms-border space-y-2 shadow-lg">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-300" data-i18n="doriHeader">پێوەرەکانی DORI بەپێی ستانداردی ئەوروپی (EN 62676-4):</span>
+                        <span id="doriStatusBadge" class="font-mono font-bold text-vms-emerald">Identify (≥ 250 PPM)</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-center text-[10px] font-mono">
+                        <div id="cardDoriDetect" class="p-2 rounded bg-vms-card border border-vms-border text-gray-400">
+                            <span class="block font-bold" data-i18n="doriDetect">دیاریکردن (Detect)</span>
+                            <span>≥ 25 PPM</span>
+                        </div>
+                        <div id="cardDoriObserve" class="p-2 rounded bg-vms-card border border-vms-border text-gray-400">
+                            <span class="block font-bold" data-i18n="doriObserve">چاودێری (Observe)</span>
+                            <span>≥ 62 PPM</span>
+                        </div>
+                        <div id="cardDoriRecognize" class="p-2 rounded bg-vms-card border border-vms-border text-gray-400">
+                            <span class="block font-bold" data-i18n="doriRecognize">ناسینەوە (Recognize)</span>
+                            <span>≥ 125 PPM</span>
+                        </div>
+                        <div id="cardDoriIdentify" class="p-2 rounded bg-vms-emerald/20 border border-vms-emerald text-vms-emerald font-black">
+                            <span class="block font-bold" data-i18n="doriIdentify">ناسینی تەواو (Identify)</span>
+                            <span>≥ 250 PPM</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAB 2: Radar & Elevation -->
+            <div id="tabPanel2" class="tab-pane hidden space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Radar -->
+                    <div class="bg-vms-panel p-3 rounded-xl border border-vms-border space-y-2 shadow-lg">
+                        <div class="flex justify-between items-center text-xs font-bold text-white">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-satellite-dish text-vms-cyan"></i> <span data-i18n="radarTitle">نەخشەی ڕاداری ئاسۆیی (DORI Radar)</span>
+                            </span>
+                            <span class="text-[10px] font-mono text-vms-cyan">0 - 50 م</span>
+                        </div>
+                        <div class="w-full aspect-[4/3] bg-black rounded-lg overflow-hidden border border-vms-border relative shadow-inner">
+                            <canvas id="cvsRadar" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Side Profile -->
+                    <div class="bg-vms-panel p-3 rounded-xl border border-vms-border space-y-2 shadow-lg">
+                        <div class="flex justify-between items-center text-xs font-bold text-white">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-ruler-combined text-vms-emerald"></i> <span data-i18n="sideTitle">هێڵکاری ستوونی و ناوچەی کوێر (Side Elevation)</span>
+                            </span>
+                            <span class="text-[10px] font-mono text-vms-rose">ناوچەی سوور = کوێر</span>
+                        </div>
+                        <div class="w-full aspect-[4/3] bg-black rounded-lg overflow-hidden border border-vms-border relative shadow-inner">
+                            <canvas id="cvsSide" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Engineering Report Modal -->
+    <div id="reportModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 overflow-y-auto no-print">
+        <div class="bg-vms-panel border border-vms-border rounded-xl max-w-2xl w-full p-6 text-gray-200 shadow-2xl relative my-8">
+            <button id="btnCloseReport" class="absolute top-4 left-4 text-gray-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center gap-3 border-b border-vms-border pb-4 mb-4">
+                <div class="w-12 h-12 rounded bg-vms-card border border-vms-border p-1 flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 120 150" class="w-full h-full">
+                        <path d="M 60,10 C 34,10 14,35 14,75 C 14,105 32,135 60,145 Z" fill="#e29578" />
+                        <path d="M 60,10 C 86,10 106,35 106,75 C 106,105 88,135 60,145 Z" fill="#181b22" />
+                        <line x1="60" y1="8" x2="60" y2="146" stroke="#e60012" stroke-width="3" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-white" data-i18n="repMainHeader">ڕاپۆرتی ئەندازیاری کامێرای چاودێری</h3>
+                    <p class="text-xs text-vms-cyan font-bold">ئەندازیاری سەرپەرشتیار: هاودەنگ مصطفى (Hawdang Mustafa)</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4 text-xs font-mono">
+                <div class="bg-vms-card p-2 rounded border border-vms-border">
+                    <span class="text-gray-400 block text-[10px]">درێژی لێنز:</span>
+                    <span id="repLens" class="text-vms-cyan font-bold">2.8 mm</span>
+                </div>
+                <div class="bg-vms-card p-2 rounded border border-vms-border">
+                    <span class="text-gray-400 block text-[10px]">ڕوونی کامێرا:</span>
+                    <span id="repRes" class="text-vms-amber font-bold">4 MP</span>
+                </div>
+                <div class="bg-vms-card p-2 rounded border border-vms-border">
+                    <span class="text-gray-400 block text-[10px]">بەرزی کامێرا:</span>
+                    <span id="repHeight" class="text-vms-emerald font-bold">3.0 م</span>
+                </div>
+                <div class="bg-vms-card p-2 rounded border border-vms-border">
+                    <span class="text-gray-400 block text-[10px]">دووری ئامانج:</span>
+                    <span id="repDist" class="text-white font-bold">10.0 م</span>
+                </div>
+                <div class="bg-vms-card p-2 rounded border border-vms-border">
+                    <span class="text-gray-400 block text-[10px]">گۆشەی ئاسۆیی (HFOV):</span>
+                    <span id="repHfov" class="text-vms-cyan font-bold">85.5°</span>
+                </div>
+                <div class="bg-vms-card p-2 rounded border border-vms-border">
+                    <span class="text-gray-400 block text-[10px]">درێژی کێبڵی ئەنەلۆگ:</span>
+                    <span id="repCoax" class="text-vms-amber font-bold">50 م</span>
+                </div>
+            </div>
+
+            <div class="bg-vms-card border border-vms-rose/40 p-3 rounded-lg mb-4 text-xs">
+                <h5 class="font-bold text-vms-rose mb-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <span>ناوچەی کوێر (Dead Zone):</span>
+                </h5>
+                <div class="flex justify-between">
+                    <span>درێژیی ناوچەی کوێر: <b id="repBlindM" class="text-white">1.8 م</b></span>
+                    <span>ڕێژەی کەلێنی بینین: <b id="repBlindPct" class="text-vms-amber">18.2%</b></span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 border-t border-vms-border">
+                <span class="text-[11px] text-gray-500 font-mono">HAWDANG OPTICAL ENGINEERING VMS</span>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="px-4 py-1.5 rounded bg-vms-accent hover:bg-red-700 text-white font-bold text-xs transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i>
+                        <span>چاپکردن (PDF)</span>
+                    </button>
+                    <button id="btnCloseReport2" class="px-3.5 py-1.5 rounded bg-vms-card border border-vms-border text-white text-xs font-bold transition">
+                        داخستن
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-vms-header border-t border-vms-border py-2.5 px-4 no-print">
+        <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-vms-emerald"></span>
+                <span>سیستەمی پێشکەوتووی ئەندازیار هاودەنگ مصطفى (Hawdang Mustafa) | CCTV VMS Suite</span>
+            </div>
+            <div class="font-mono text-[10px] text-gray-500">
+                ALL CALCULATION FORMULAS ACCREDITED TO EUROPEAN STANDARD EN 62676-4
+            </div>
+        </div>
+    </footer>
+
+    <!-- Robust Real Photo Processing JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Multilingual text
+            const translations = {
+                ckb: {
+                    dir: "rtl",
+                    subtitle: "شیکاری ئەندازیاری بینینی دەموچاوی ڕاستەقینە، تابلۆی ئۆتۆمبێل، و بەراوردکاری IP بەرامبەر Analog",
+                    modeDay: "ڕۆژ (Day)",
+                    modeIR: "شەوی IR",
+                    modeColorVu: "کەلەر ڤیو (ColorVu 24/7)",
+                    reportBtn: "ڕاپۆرتی ئەندازیاری",
+                    controlTitle: "کۆنتڕۆڵی لێنز و دامەزراندن",
+                    focalLength: "درێژی فوکەسی لێنز (Focal Length):",
+                    sensorRes: "ڕوونی هەستەوەر (Sensor Resolution):",
+                    camHeight: "بەرزی کامێرا لەسەر زەوی (Height):",
+                    targetDist: "دووری ئامانج لەسەر زەوی (Distance):",
+                    tiltAngle: "گۆشەی مەیل (Tilt Angle):",
+                    coaxCable: "درێژی وایەری کۆئەکسیال (RG59):",
+                    targetType: "وێنەی پشکنینی ڕاستەقینە:",
+                    targetHuman: "دەموچاوی مرۆڤی ڕاستی",
+                    targetCar: "تابلۆی ئۆتۆمبێل (Plate)",
+                    wdrTech: "تەکنەلۆژیای WDR / BLC / HLC:",
+                    blindSpotTitle: "ناوچەی کوێری ژێر کامێرا (Dead Zone)",
+                    blindLength: "درێژیی ناوچەی کوێر:",
+                    blindRatio: "ڕێژەی کەلێنی بینین:",
+                    statHFOVTitle: "گۆشەی ئاسۆیی (HFOV)",
+                    statWidthTitle: "پانتایی دیمەن لە ئامانج",
+                    statPPMTitle: "چڕیی پێکسڵ (PPM)",
+                    statBlindTitle: "ناوچەی کوێری زەوی",
+                    tabLive: "بینینی ڕاستەوخۆ: دەموچاو و تابلۆ (IP vs Analog)",
+                    tabRadar: "نەخشەی ڕاداری DORI و هێڵکاری ستوونی",
+                    doriHeader: "پێوەرەکانی DORI بەپێی ستانداردی ئەوروپی (EN 62676-4):",
+                    doriDetect: "دیاریکردن (Detect)",
+                    doriObserve: "چاودێری (Observe)",
+                    doriRecognize: "ناسینەوە (Recognize)",
+                    doriIdentify: "ناسینی تەواو (Identify)",
+                    blindAlertText: "ئاگاداری: ئامانجەکە کەوتە ناوچەی کوێر (Dead Zone) لە ژێر کامێراکەدا و بەهیچ شێوەیەک نابینرێت!",
+                    radarTitle: "نەخشەی ڕاداری ئاسۆیی (DORI Radar)",
+                    sideTitle: "هێڵکاری ستوونی و ناوچەی کوێر (Side Elevation)"
+                },
+                ar: {
+                    dir: "rtl",
+                    subtitle: "فحص هندسي حقيقي لملامح الوجه ولوحة المركبات ومقارنة IP ضد Analog",
+                    modeDay: "نهار (Day)",
+                    modeIR: "ليلي IR",
+                    modeColorVu: "ألوان 24/7 (ColorVu)",
+                    reportBtn: "التقرير الهندسي",
+                    controlTitle: "التحكم في العدسة والتركيب",
+                    focalLength: "البعد البؤري للعدسة (Focal Length):",
+                    sensorRes: "دقة المستشعر (Sensor Resolution):",
+                    camHeight: "ارتفاع الكاميرا عن الأرض (Height):",
+                    targetDist: "مسافة الهدف على الأرض (Distance):",
+                    tiltAngle: "زاوية الميلان (Tilt Angle):",
+                    coaxCable: "طول كيبل الكواكسيال (RG59):",
+                    targetType: "صورة الفحص الحقيقية:",
+                    targetHuman: "وجه إنسان حقيقي",
+                    targetCar: "لوحة مركبة (Plate)",
+                    wdrTech: "تقنيات WDR / BLC / HLC:",
+                    blindSpotTitle: "المنطقة العمياء تحت الكاميرا (Dead Zone)",
+                    blindLength: "طول المنطقة العمياء:",
+                    blindRatio: "نسبة الفجوة البصرية:",
+                    statHFOVTitle: "زاوية الرؤية الأفقية (HFOV)",
+                    statWidthTitle: "عرض المشهد عند الهدف",
+                    statPPMTitle: "كثافة البكسل (PPM)",
+                    statBlindTitle: "المنطقة العمياء أرضياً",
+                    tabLive: "المعاينة المباشرة: وجه حقيقي ولوحة (IP ضد Analog)",
+                    tabRadar: "مخطط الرادار والمسقط الرأسي",
+                    doriHeader: "معايير DORI الأوروبية (EN 62676-4):",
+                    doriDetect: "كشف (Detect)",
+                    doriObserve: "مراقبة (Observe)",
+                    doriRecognize: "تمييز (Recognize)",
+                    doriIdentify: "تعرف دقيق (Identify)",
+                    blindAlertText: "تحذير: الهدف داخل المنطقة العمياء مباشرة تحت الكاميرا!",
+                    radarTitle: "مخطط الرادار الأفقي (DORI Radar)",
+                    sideTitle: "المسقط الرأسي والمنطقة العمياء (Side Elevation)"
+                },
+                en: {
+                    dir: "ltr",
+                    subtitle: "Authentic Human Portrait & License Plate Optical Inspection (IP vs Analog)",
+                    modeDay: "Day Mode",
+                    modeIR: "Night IR",
+                    modeColorVu: "ColorVu 24/7",
+                    reportBtn: "Engineering Report",
+                    controlTitle: "Lens & Mounting Controls",
+                    focalLength: "Lens Focal Length:",
+                    sensorRes: "Sensor Resolution:",
+                    camHeight: "Mounting Height:",
+                    targetDist: "Target Distance:",
+                    tiltAngle: "Tilt Angle:",
+                    coaxCable: "Coaxial Cable Length (RG59):",
+                    targetType: "Authentic Inspection Target:",
+                    targetHuman: "Real Human Face",
+                    targetCar: "Vehicle License Plate",
+                    wdrTech: "WDR / BLC / HLC Technology:",
+                    blindSpotTitle: "Ground Dead Zone (Blind Spot)",
+                    blindLength: "Dead Zone Distance:",
+                    blindRatio: "Blind Spot Ratio:",
+                    statHFOVTitle: "Horizontal FOV (HFOV)",
+                    statWidthTitle: "Scene Width at Target",
+                    statPPMTitle: "Pixel Density (PPM)",
+                    statBlindTitle: "Ground Dead Zone",
+                    tabLive: "Live View: Real Face & Plate (IP vs Analog)",
+                    tabRadar: "2D Radar & Side Elevation Profile",
+                    doriHeader: "DORI Standards (EN 62676-4):",
+                    doriDetect: "Detect",
+                    doriObserve: "Observe",
+                    doriRecognize: "Recognize",
+                    doriIdentify: "Identify",
+                    blindAlertText: "Warning: Target is situated within the Camera Dead Zone directly underneath!",
+                    radarTitle: "2D Horizontal Radar FOV",
+                    sideTitle: "Side Elevation Profile & Dead Zone"
+                }
+            };
+
+            const state = {
+                currentLang: "ckb",
+                focalLength: 2.8,
+                sensorWidth: 5.18,
+                sensorHeight: 3.88,
+                resolutionMP: 4,
+                resolutionW: 2560,
+                resolutionH: 1440,
+                height: 3.0,
+                distance: 10.0,
+                tiltDeg: 16.7,
+                isAutoTilt: true,
+                targetType: "human", // 'human' or 'car'
+                viewMode: "colorvu",
+                coaxLength: 50,
+                wdrMode: "wdr"
+            };
+
+            // Authentic High-Resolution Images
+            const imgRealPerson = new Image();
+            imgRealPerson.crossOrigin = "anonymous";
+            imgRealPerson.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=90";
+            let realPersonLoaded = false;
+            imgRealPerson.onload = () => { realPersonLoaded = true; refreshAll(); };
+
+            // Real Kurdistan License Plate Graphics Canvas Cache
+            const offPlate = document.createElement('canvas');
+            offPlate.width = 520;
+            offPlate.height = 160;
+            const opCtx = offPlate.getContext('2d');
+            function renderMasterPlate() {
+                opCtx.fillStyle = '#ffffff';
+                opCtx.fillRect(0, 0, 520, 160);
+                opCtx.strokeStyle = '#000000';
+                opCtx.lineWidth = 6;
+                opCtx.strokeRect(4, 4, 512, 152);
+
+                // Blue strip
+                opCtx.fillStyle = '#0284c7';
+                opCtx.fillRect(10, 10, 100, 140);
+                opCtx.fillStyle = '#ffffff';
+                opCtx.font = 'bold 22px Vazirmatn, sans-serif';
+                opCtx.textAlign = 'center';
+                opCtx.fillText('IRAQ', 60, 55);
+                opCtx.font = 'bold 16px Vazirmatn, sans-serif';
+                opCtx.fillText('KR', 60, 105);
+
+                // Numbers and governorate
+                opCtx.fillStyle = '#000000';
+                opCtx.font = '900 48px "JetBrains Mono", Vazirmatn, monospace';
+                opCtx.textAlign = 'center';
+                opCtx.fillText('هەولێر  21 B 54321', 315, 98);
+            }
+            renderMasterPlate();
+
+            const resMap = {
+                2: { w: 1920, h: 1080 },
+                4: { w: 2560, h: 1440 },
+                5: { w: 2560, h: 1920 },
+                8: { w: 3840, h: 2160 },
+                12: { w: 4000, h: 3000 }
+            };
+
+            // DOM Elements
+            const selLang = document.getElementById('selLang');
+            const sliderFocal = document.getElementById('sliderFocal');
+            const valFocalText = document.getElementById('valFocalText');
+            const badgeLensQuick = document.getElementById('badgeLensQuick');
+            const selResolution = document.getElementById('selResolution');
+            const sliderHeight = document.getElementById('sliderHeight');
+            const valHeightText = document.getElementById('valHeightText');
+            const sliderDist = document.getElementById('sliderDist');
+            const valDistText = document.getElementById('valDistText');
+            const sliderTilt = document.getElementById('sliderTilt');
+            const valTiltText = document.getElementById('valTiltText');
+            const btnAutoTilt = document.getElementById('btnAutoTilt');
+            const sliderCoaxLen = document.getElementById('sliderCoaxLen');
+            const valCoaxLenText = document.getElementById('valCoaxLenText');
+            const btnSelectHuman = document.getElementById('btnSelectHuman');
+            const btnSelectCar = document.getElementById('btnSelectCar');
+
+            const btnModeDay = document.getElementById('btnModeDay');
+            const btnModeIR = document.getElementById('btnModeIR');
+            const btnModeColorVu = document.getElementById('btnModeColorVu');
+            const osdLightingBadge = document.getElementById('osdLightingBadge');
+            const osdResBadge = document.getElementById('osdResBadge');
+
+            const statHFOV = document.getElementById('statHFOV');
+            const statVFOV = document.getElementById('statVFOV');
+            const statSceneWidth = document.getElementById('statSceneWidth');
+            const statSlant = document.getElementById('statSlant');
+            const statPPM = document.getElementById('statPPM');
+            const statTiltInfo = document.getElementById('statTiltInfo');
+            const statBlindM = document.getElementById('statBlindM');
+            const valBlindRatioBadge = document.getElementById('valBlindRatioBadge');
+            const valBlindMetersText = document.getElementById('valBlindMetersText');
+            const valBlindPercentText = document.getElementById('valBlindPercentText');
+            const blindProgressBar = document.getElementById('blindProgressBar');
+            const blindAlertBanner = document.getElementById('blindAlertBanner');
+
+            const tabBtn1 = document.getElementById('tabBtn1');
+            const tabBtn2 = document.getElementById('tabBtn2');
+            const tabPanel1 = document.getElementById('tabPanel1');
+            const tabPanel2 = document.getElementById('tabPanel2');
+
+            const cvsLiveIP = document.getElementById('cvsLiveIP');
+            const cvsLiveAnalog = document.getElementById('cvsLiveAnalog');
+            const cvsRadar = document.getElementById('cvsRadar');
+            const cvsSide = document.getElementById('cvsSide');
+
+            const lblPpmIP = document.getElementById('lblPpmIP');
+            const lblCableLossText = document.getElementById('lblCableLossText');
+            const lblIpSummary = document.getElementById('lblIpSummary');
+            const lblAnalogSummary = document.getElementById('lblAnalogSummary');
+
+            function applyLanguage(lang) {
+                state.currentLang = lang;
+                const dict = translations[lang] || translations.ckb;
+                document.documentElement.lang = lang;
+                document.documentElement.dir = dict.dir;
+
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (dict[key]) el.textContent = dict[key];
+                });
+                refreshAll();
+            }
+
+            if (selLang) selLang.addEventListener('change', (e) => applyLanguage(e.target.value));
+
+            function setupCanvas(cvs) {
+                if (!cvs) return null;
+                const rect = cvs.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) return null;
+                const dpr = window.devicePixelRatio || 1;
+                cvs.width = rect.width * dpr;
+                cvs.height = rect.height * dpr;
+                const ctx = cvs.getContext('2d');
+                ctx.resetTransform();
+                ctx.scale(dpr, dpr);
+                return { ctx, width: rect.width, height: rect.height };
+            }
+
+            function calculateOptics() {
+                state.sensorWidth = (state.viewMode === "colorvu") ? 7.18 : 5.18;
+                state.sensorHeight = (state.viewMode === "colorvu") ? 5.32 : 3.88;
+
+                const hfovRad = 2 * Math.atan(state.sensorWidth / (2 * state.focalLength));
+                const vfovRad = 2 * Math.atan(state.sensorHeight / (2 * state.focalLength));
+                const hfovDeg = (hfovRad * 180) / Math.PI;
+                const vfovDeg = (vfovRad * 180) / Math.PI;
+
+                const targetHeight = (state.targetType === "human") ? 1.75 : 1.5;
+                const heightDiff = Math.max(0.2, state.height - targetHeight);
+
+                let tiltRad = (state.tiltDeg * Math.PI) / 180;
+                if (state.isAutoTilt) {
+                    tiltRad = Math.atan2(heightDiff, state.distance);
+                    state.tiltDeg = (tiltRad * 180) / Math.PI;
+                    if (sliderTilt) sliderTilt.value = state.tiltDeg.toFixed(1);
+                }
+
+                const slantDist = Math.sqrt(Math.pow(state.distance, 2) + Math.pow(heightDiff, 2));
+                const sceneWidthAtDist = (slantDist * state.sensorWidth) / state.focalLength;
+                const ppm = state.resolutionW / Math.max(0.1, sceneWidthAtDist);
+
+                const lowerRayAngle = tiltRad + (vfovRad / 2);
+                let blindDist = 0.1;
+                if (lowerRayAngle > 0.05 && lowerRayAngle < (Math.PI / 2 - 0.02)) {
+                    blindDist = state.height / Math.tan(lowerRayAngle);
+                }
+                blindDist = Math.max(0.1, Math.min(60, blindDist));
+
+                const blindRatioPct = Math.min(100, (blindDist / Math.max(0.1, state.distance)) * 100);
+                const isInBlindSpot = (state.distance <= blindDist);
+
+                const distIdentify = (state.resolutionW * state.focalLength) / (250 * state.sensorWidth);
+                const distRecognize = (state.resolutionW * state.focalLength) / (125 * state.sensorWidth);
+                const distObserve = (state.resolutionW * state.focalLength) / (62 * state.sensorWidth);
+                const distDetect = (state.resolutionW * state.focalLength) / (25 * state.sensorWidth);
+
+                return {
+                    hfovRad, vfovRad, hfovDeg, vfovDeg,
+                    tiltDeg: state.tiltDeg,
+                    slantDist, sceneWidthAtDist, ppm,
+                    blindDist, blindRatioPct, isInBlindSpot,
+                    distIdentify, distRecognize, distObserve, distDetect
+                };
+            }
+
+            // Real Target Canvas Painting (Face or License Plate directly in Live View)
+            function renderRealTargetStream(cvs, isAnalog, ppm, m) {
+                const s = setupCanvas(cvs);
+                if (!s) return;
+                const { ctx, width, height } = s;
+                ctx.clearRect(0, 0, width, height);
+
+                ctx.fillStyle = isAnalog ? '#121620' : '#080d1a';
+                ctx.fillRect(0, 0, width, height);
+
+                if (m.isInBlindSpot) {
+                    ctx.fillStyle = '#ef4444';
+                    ctx.font = 'bold 15px Vazirmatn, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('ئامانج لە ناوچەی کوێر دایە (DEAD ZONE)', width / 2, height / 2);
+                    return;
+                }
+
+                const isIR = (state.viewMode === "ir");
+
+                // Source Image: Human or Plate
+                const offSource = document.createElement('canvas');
+                if (state.targetType === "human") {
+                    offSource.width = 300;
+                    offSource.height = 300;
+                    const oCtx = offSource.getContext('2d');
+                    if (realPersonLoaded && imgRealPerson.naturalWidth > 0) {
+                        oCtx.drawImage(imgRealPerson, 0, 0, 300, 300);
+                    } else {
+                        oCtx.fillStyle = '#fed7aa';
+                        oCtx.beginPath();
+                        oCtx.arc(150, 150, 110, 0, Math.PI * 2);
+                        oCtx.fill();
+                    }
+                    if (isIR) {
+                        const imgData = oCtx.getImageData(0, 0, 300, 300);
+                        const d = imgData.data;
+                        for (let i = 0; i < d.length; i += 4) {
+                            const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                            d[i] = gray; d[i + 1] = gray; d[i + 2] = gray;
+                        }
+                        oCtx.putImageData(imgData, 0, 0);
+                    }
+                } else {
+                    // License Plate
+                    offSource.width = 520;
+                    offSource.height = 160;
+                    const oCtx = offSource.getContext('2d');
+                    oCtx.drawImage(offPlate, 0, 0);
+                    if (isIR) {
+                        const imgData = oCtx.getImageData(0, 0, 520, 160);
+                        const d = imgData.data;
+                        for (let i = 0; i < d.length; i += 4) {
+                            const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                            d[i] = gray; d[i + 1] = gray; d[i + 2] = gray;
+                        }
+                        oCtx.putImageData(imgData, 0, 0);
+                    }
+                }
+
+                // Downsampling block size based on EN 62676-4 PPM
+                let effectivePPM = ppm;
+                if (isAnalog) {
+                    const cableLoss = state.coaxLength / 300;
+                    effectivePPM = Math.max(15, ppm * (1 - cableLoss * 0.45));
+                }
+
+                let blockSize = 1;
+                if (effectivePPM >= 250) blockSize = isAnalog ? 2 : 1;
+                else if (effectivePPM >= 180) blockSize = isAnalog ? 3 : 2;
+                else if (effectivePPM >= 125) blockSize = isAnalog ? 5 : 3;
+                else if (effectivePPM >= 80) blockSize = isAnalog ? 8 : 6;
+                else if (effectivePPM >= 45) blockSize = isAnalog ? 15 : 11;
+                else blockSize = isAnalog ? 26 : 20;
+
+                // Scale target on screen
+                let targetW, targetH;
+                if (state.targetType === "human") {
+                    targetH = height * 0.85;
+                    targetW = targetH;
+                } else {
+                    targetW = width * 0.88;
+                    targetH = targetW * (160 / 520);
+                }
+                const targetX = (width - targetW) / 2;
+                const targetY = (height - targetH) / 2;
+
+                if (blockSize > 1) {
+                    const dw = Math.max(6, Math.floor(offSource.width / blockSize));
+                    const dh = Math.max(6, Math.floor(offSource.height / blockSize));
+                    const temp = document.createElement('canvas');
+                    temp.width = dw; temp.height = dh;
+                    const tCtx = temp.getContext('2d');
+                    tCtx.imageSmoothingEnabled = isAnalog;
+                    tCtx.drawImage(offSource, 0, 0, dw, dh);
+
+                    ctx.imageSmoothingEnabled = isAnalog;
+                    ctx.drawImage(temp, 0, 0, dw, dh, targetX, targetY, targetW, targetH);
+                    ctx.imageSmoothingEnabled = true;
+                } else {
+                    ctx.drawImage(offSource, 0, 0, offSource.width, offSource.height, targetX, targetY, targetW, targetH);
+                }
+
+                // If Analog: add real coaxial cable noise and 50Hz hum
+                if (isAnalog) {
+                    const lossRatio = state.coaxLength / 300;
+                    ctx.fillStyle = 'rgba(245, 158, 11, 0.12)';
+                    ctx.fillRect(targetX, targetY, targetW, targetH);
+
+                    const noiseDots = Math.floor(30 + (lossRatio * 200));
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                    for (let i = 0; i < noiseDots; i++) {
+                        ctx.fillRect(targetX + Math.random() * targetW, targetY + Math.random() * targetH, 2, 1);
+                    }
+
+                    const humY = (Date.now() / 25) % height;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+                    ctx.fillRect(0, humY, width, 12);
+                }
+            }
+
+            // Radar & Side View
+            function drawRadar(m) {
+                if (tabPanel2.classList.contains('hidden')) return;
+                const s = setupCanvas(cvsRadar);
+                if (!s) return;
+                const { ctx, width, height } = s;
+                ctx.clearRect(0, 0, width, height);
+
+                const originX = width / 2, originY = height - 20;
+                const scale = (height - 35) / 50;
+                const halfFov = m.hfovRad / 2;
+                const startAngle = -Math.PI / 2 - halfFov;
+                const endAngle = -Math.PI / 2 + halfFov;
+
+                [10, 20, 30, 40].forEach(rM => {
+                    ctx.strokeStyle = '#232d42';
+                    ctx.beginPath();
+                    ctx.arc(originX, originY, rM * scale, -Math.PI, 0);
+                    ctx.stroke();
+                });
+
+                const zones = [
+                    { dist: m.distDetect, color: 'rgba(239, 68, 68, 0.15)', stroke: '#ef4444' },
+                    { dist: m.distObserve, color: 'rgba(245, 158, 11, 0.18)', stroke: '#f59e0b' },
+                    { dist: m.distRecognize, color: 'rgba(6, 182, 212, 0.22)', stroke: '#06b6d4' },
+                    { dist: m.distIdentify, color: 'rgba(16, 185, 129, 0.28)', stroke: '#10b981' }
+                ];
+
+                zones.forEach(z => {
+                    const r = Math.min(width, Math.max(0, z.dist * scale));
+                    if (r > 0) {
+                        ctx.fillStyle = z.color; ctx.strokeStyle = z.stroke; ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(originX, originY);
+                        ctx.arc(originX, originY, r, startAngle, endAngle);
+                        ctx.closePath();
+                        ctx.fill(); ctx.stroke();
+                    }
+                });
+
+                const blindR = Math.min(width, m.blindDist * scale);
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.arc(originX, originY, blindR, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            function drawSide(m) {
+                if (tabPanel2.classList.contains('hidden')) return;
+                const s = setupCanvas(cvsSide);
+                if (!s) return;
+                const { ctx, width, height } = s;
+                ctx.clearRect(0, 0, width, height);
+
+                const groundY = height - 25, camX = 45;
+                const scaleX = (width - 70) / 50;
+                const scaleY = (groundY - 30) / 10;
+
+                ctx.strokeStyle = '#232d42'; ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(15, groundY); ctx.lineTo(width - 15, groundY);
+                ctx.stroke();
+
+                const camY = groundY - (state.height * scaleY);
+                ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.moveTo(camX, groundY); ctx.lineTo(camX, camY);
+                ctx.stroke();
+
+                const blindPx = Math.min(width - 60, m.blindDist * scaleX);
+                const blindGroundX = camX + blindPx;
+
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.28)';
+                ctx.beginPath();
+                ctx.moveTo(camX, groundY); ctx.lineTo(camX, camY); ctx.lineTo(blindGroundX, groundY);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Master Refresh
+            function refreshAll() {
+                const m = calculateOptics();
+
+                if (valFocalText) valFocalText.textContent = `${state.focalLength.toFixed(1)} mm`;
+                if (badgeLensQuick) badgeLensQuick.textContent = `${state.focalLength.toFixed(1)}mm @ ${state.resolutionMP}MP`;
+                if (valHeightText) valHeightText.textContent = `${state.height.toFixed(1)} م`;
+                if (valDistText) valDistText.textContent = `${state.distance.toFixed(1)} م`;
+                if (valTiltText) valTiltText.textContent = `${state.tiltDeg.toFixed(1)}°`;
+
+                if (statHFOV) statHFOV.textContent = `${m.hfovDeg.toFixed(1)}°`;
+                if (statVFOV) statVFOV.textContent = `V-FOV: ${m.vfovDeg.toFixed(1)}°`;
+                if (statSceneWidth) statSceneWidth.textContent = `${m.sceneWidthAtDist.toFixed(1)} م`;
+                if (statSlant) statSlant.textContent = `Slant: ${m.slantDist.toFixed(1)} م`;
+                if (statPPM) statPPM.textContent = `${Math.round(m.ppm)} px/m`;
+                if (statTiltInfo) statTiltInfo.textContent = `Tilt: -${m.tiltDeg.toFixed(1)}°`;
+                if (statBlindM) statBlindM.textContent = `${m.blindDist.toFixed(1)} م`;
+
+                if (valBlindRatioBadge) valBlindRatioBadge.textContent = `${m.blindRatioPct.toFixed(1)}%`;
+                if (valBlindMetersText) valBlindMetersText.textContent = `${m.blindDist.toFixed(1)} م`;
+                if (valBlindPercentText) valBlindPercentText.textContent = `${m.blindRatioPct.toFixed(1)}%`;
+                if (blindProgressBar) blindProgressBar.style.width = `${Math.min(100, m.blindRatioPct)}%`;
+
+                if (blindAlertBanner) {
+                    if (m.isInBlindSpot) blindAlertBanner.classList.remove('hidden');
+                    else blindAlertBanner.classList.add('hidden');
+                }
+
+                if (lblPpmIP) lblPpmIP.textContent = Math.round(m.ppm);
+                if (lblCableLossText) lblCableLossText.textContent = `${state.coaxLength}m CABLE RG59 NOISE`;
+
+                // Live Canvas Rendering
+                renderRealTargetStream(cvsLiveIP, false, m.ppm, m);
+                renderRealTargetStream(cvsLiveAnalog, true, m.ppm, m);
+
+                drawRadar(m);
+                drawSide(m);
+            }
+
+            // Event Listeners
+            btnSelectHuman.addEventListener('click', () => {
+                state.targetType = "human";
+                btnSelectHuman.className = "py-2 px-3 rounded-lg bg-vms-accent text-white flex items-center justify-center gap-2 shadow border border-red-500 transition";
+                btnSelectCar.className = "py-2 px-3 rounded-lg bg-vms-input hover:bg-vms-border text-gray-300 flex items-center justify-center gap-2 border border-vms-border transition";
+                refreshAll();
+            });
+
+            btnSelectCar.addEventListener('click', () => {
+                state.targetType = "car";
+                btnSelectCar.className = "py-2 px-3 rounded-lg bg-vms-accent text-white flex items-center justify-center gap-2 shadow border border-red-500 transition";
+                btnSelectHuman.className = "py-2 px-3 rounded-lg bg-vms-input hover:bg-vms-border text-gray-300 flex items-center justify-center gap-2 border border-vms-border transition";
+                refreshAll();
+            });
+
+            sliderFocal.addEventListener('input', (e) => {
+                state.focalLength = parseFloat(e.target.value);
+                document.querySelectorAll('.btn-lens').forEach(b => {
+                    b.classList.toggle('btn-lens-active', parseFloat(b.dataset.focal) === state.focalLength);
+                });
+                refreshAll();
+            });
+
+            document.querySelectorAll('.btn-lens').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.focalLength = parseFloat(btn.dataset.focal);
+                    sliderFocal.value = state.focalLength;
+                    document.querySelectorAll('.btn-lens').forEach(b => b.classList.remove('btn-lens-active'));
+                    btn.classList.add('btn-lens-active');
+                    refreshAll();
+                });
+            });
+
+            selResolution.addEventListener('change', (e) => {
+                const mp = parseInt(e.target.value);
+                state.resolutionMP = mp;
+                state.resolutionW = resMap[mp].w;
+                state.resolutionH = resMap[mp].h;
+                refreshAll();
+            });
+
+            sliderHeight.addEventListener('input', (e) => {
+                state.height = parseFloat(e.target.value);
+                refreshAll();
+            });
+
+            sliderDist.addEventListener('input', (e) => {
+                state.distance = parseFloat(e.target.value);
+                refreshAll();
+            });
+
+            sliderTilt.addEventListener('input', (e) => {
+                state.tiltDeg = parseFloat(e.target.value);
+                state.isAutoTilt = false;
+                refreshAll();
+            });
+
+            btnAutoTilt.addEventListener('click', () => {
+                state.isAutoTilt = true;
+                refreshAll();
+            });
+
+            sliderCoaxLen.addEventListener('input', (e) => {
+                state.coaxLength = parseInt(e.target.value);
+                valCoaxLenText.textContent = `${state.coaxLength} م`;
+                refreshAll();
+            });
+
+            // Lighting Modes
+            btnModeDay.addEventListener('click', () => {
+                state.viewMode = 'day';
+                btnModeDay.className = 'px-3 py-1.5 rounded bg-vms-card border border-vms-border text-white flex items-center gap-1.5 font-bold';
+                btnModeIR.className = 'px-3 py-1.5 rounded transition text-gray-400 hover:text-white flex items-center gap-1.5';
+                btnModeColorVu.className = 'px-3 py-1.5 rounded transition text-gray-400 hover:text-white flex items-center gap-1.5';
+                osdLightingBadge.textContent = 'DAYLIGHT F1.4';
+                refreshAll();
+            });
+
+            btnModeIR.addEventListener('click', () => {
+                state.viewMode = 'ir';
+                btnModeIR.className = 'px-3 py-1.5 rounded bg-vms-card border border-vms-border text-white flex items-center gap-1.5 font-bold';
+                btnModeDay.className = 'px-3 py-1.5 rounded transition text-gray-400 hover:text-white flex items-center gap-1.5';
+                btnModeColorVu.className = 'px-3 py-1.5 rounded transition text-gray-400 hover:text-white flex items-center gap-1.5';
+                osdLightingBadge.textContent = 'NIGHT IR B&W';
+                refreshAll();
+            });
+
+            btnModeColorVu.addEventListener('click', () => {
+                state.viewMode = 'colorvu';
+                btnModeColorVu.className = 'btn-mode-active px-3.5 py-1.5 rounded transition text-white flex items-center gap-1.5 font-black shadow';
+                btnModeDay.className = 'px-3 py-1.5 rounded transition text-gray-400 hover:text-white flex items-center gap-1.5';
+                btnModeIR.className = 'px-3 py-1.5 rounded transition text-gray-400 hover:text-white flex items-center gap-1.5';
+                osdLightingBadge.textContent = 'COLORVU 24/7 F1.0';
+                refreshAll();
+            });
+
+            // Tabs
+            tabBtn1.addEventListener('click', () => {
+                tabBtn1.classList.add('tab-active');
+                tabBtn2.classList.remove('tab-active');
+                tabPanel1.classList.remove('hidden');
+                tabPanel2.classList.add('hidden');
+                setTimeout(refreshAll, 50);
+            });
+
+            tabBtn2.addEventListener('click', () => {
+                tabBtn2.classList.add('tab-active');
+                tabBtn1.classList.remove('tab-active');
+                tabPanel2.classList.remove('hidden');
+                tabPanel1.classList.add('hidden');
+                setTimeout(refreshAll, 50);
+            });
+
+            // Report Modal
+            const reportModal = document.getElementById('reportModal');
+            document.getElementById('btnOpenReport').addEventListener('click', () => {
+                const m = calculateOptics();
+                document.getElementById('repLens').textContent = `${state.focalLength.toFixed(1)} mm`;
+                document.getElementById('repRes').textContent = `${state.resolutionMP} MP`;
+                document.getElementById('repHeight').textContent = `${state.height.toFixed(1)} م`;
+                document.getElementById('repDist').textContent = `${state.distance.toFixed(1)} م`;
+                document.getElementById('repHfov').textContent = `${m.hfovDeg.toFixed(1)}°`;
+                document.getElementById('repCoax').textContent = `${state.coaxLength} م`;
+                document.getElementById('repBlindM').textContent = `${m.blindDist.toFixed(1)} م`;
+                document.getElementById('repBlindPct').textContent = `${m.blindRatioPct.toFixed(1)}%`;
+                reportModal.classList.remove('hidden');
+                reportModal.classList.add('flex');
+            });
+
+            [document.getElementById('btnCloseReport'), document.getElementById('btnCloseReport2')].forEach(b => {
+                b.addEventListener('click', () => {
+                    reportModal.classList.add('hidden');
+                    reportModal.classList.remove('flex');
+                });
+            });
+
+            // Clock
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('osdDate').textContent = now.toISOString().split('T')[0];
+                document.getElementById('osdTime').textContent = now.toTimeString().split(' ')[0];
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            window.addEventListener('resize', refreshAll);
+            refreshAll();
+        });
+    </script>
+</body>
+</html>
